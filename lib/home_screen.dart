@@ -1,4 +1,10 @@
+// lib/home_screen.dart
+
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'edit_profile_screen.dart';
 
 class TabbedHomeScreen extends StatefulWidget {
   const TabbedHomeScreen({super.key});
@@ -8,127 +14,219 @@ class TabbedHomeScreen extends StatefulWidget {
 }
 
 class _TabbedHomeScreenState extends State<TabbedHomeScreen> {
-  int _selectedTabIndex = 0;
+  int _selectedIndex = 0;
+  final List<String> _tabs = ['DROP', 'MY PROGRESS'];
+  String _activeTab = 'DROP';
+
+  String _username = '';
+  Uint8List? _avatarBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('username');
+    final avatarBase64 = prefs.getString('avatar_base64');
+
+    setState(() {
+      _username = name ?? '';
+      if (avatarBase64 != null) {
+        _avatarBytes = base64Decode(avatarBase64);
+      }
+    });
+  }
+
+  Future<void> _goToEditProfile() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+    );
+    _loadProfile(); // Refresh data after returning
+  }
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  void _setActiveTab(String tab) {
+    setState(() {
+      _activeTab = tab;
+    });
+  }
+
+  Widget _buildMainContent() {
+    if (_activeTab == 'DROP') {
+      return Column(
+        children: [
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildFeatureButton('Daily'),
+              const SizedBox(width: 16),
+              _buildFeatureButton('Question'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildFeatureButton('Challenge'),
+              const SizedBox(width: 16),
+              _buildFeatureButton('Goal'),
+            ],
+          ),
+          const SizedBox(height: 30),
+          _buildAICenterButton()
+        ],
+      );
+    } else {
+      return const Center(
+        child: Text(
+          'No stories yet',
+          style: TextStyle(color: Colors.white70, fontSize: 16),
+        ),
+      );
+    }
+  }
+
+  Widget _buildFeatureButton(String title) {
+    return ElevatedButton(
+      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.grey[850],
+        foregroundColor: Colors.white,
+        minimumSize: const Size(130, 60),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      child: Text(title),
+    );
+  }
+
+  Widget _buildAICenterButton() {
+    return Container(
+      width: 80,
+      height: 80,
+      margin: const EdgeInsets.only(top: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[700],
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Center(
+        child: Text(
+          'S',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 2,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              const Text(
+                'SEEKO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
                 children: [
-                  Text("SEEKON", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: Colors.white24,
+                    backgroundImage: _avatarBytes != null
+                        ? MemoryImage(_avatarBytes!)
+                        : null,
+                    child: _avatarBytes == null
+                        ? const Icon(Icons.person, color: Colors.white)
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _username.isNotEmpty ? _username : 'Username',
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _goToEditProfile,
+                    child: const Text('Edit Profile'),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 12),
-            const CircleAvatar(radius: 40, backgroundColor: Colors.grey, child: Icon(Icons.person, size: 40, color: Colors.white)),
-            const Text("USERNAME", style: TextStyle(color: Colors.white, fontSize: 16)),
-            const Text("Edit Profile", style: TextStyle(color: Colors.white60, fontSize: 14)),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildTabItem(title: 'DROPS', index: 0),
-                const SizedBox(width: 10),
-                _buildTabItem(title: 'MY PROGRESS', index: 1),
-              ],
-            ),
-            const SizedBox(height: 24),
-            if (_selectedTabIndex == 0) _buildDrops() else _buildProgress(),
-          ],
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _tabs.map((tab) {
+                  final isActive = tab == _activeTab;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: GestureDetector(
+                      onTap: () => _setActiveTab(tab),
+                      child: Text(
+                        tab,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isActive ? Colors.white : Colors.grey,
+                          decoration:
+                              isActive ? TextDecoration.underline : null,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 20),
+              Expanded(child: _buildMainContent()),
+            ],
+          ),
         ),
       ),
-      floatingActionButton: _buildAiButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomAppBar(),
-    );
-  }
-
-Widget _buildFeatureButton(String label) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: ElevatedButton(
-      onPressed: () {
-        // Handle feature tap
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      ),
-      child: Text(label),
-    ),
-  );
-}
-
-  Widget _buildBottomAppBar() {
-    return BottomAppBar(
-      color: Colors.grey[900],
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: const [
-            Icon(Icons.home, color: Colors.white),
-            Icon(Icons.camera_alt, color: Colors.white), // Center camera icon
-            Icon(Icons.menu, color: Colors.white),
-          ],
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.grey[900],
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                onPressed: () => _onTabTapped(0),
+                icon: const Icon(Icons.home, color: Colors.white),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.camera_alt, color: Colors.white),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.menu, color: Colors.white),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTabItem({required String title, required int index}) {
-    final bool isSelected = _selectedTabIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTabIndex = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(title, style: TextStyle(color: isSelected ? Colors.black : Colors.white)),
-      ),
-    );
-  }
-
-  Widget _buildDrops() {
-    return Column(
-      children: [
-        _buildFeatureButton("Daily"),
-        _buildFeatureButton("Question"),
-        _buildFeatureButton("Challenge"),
-        _buildFeatureButton("Goal"),
-      ],
-    );
-  }
-
-  Widget _buildProgress() {
-    return const Text("No entries yet", style: TextStyle(color: Colors.white70));
-  }
-
-  Widget _buildFeatureButton(String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-        ),
-        child: Text(label),
       ),
     );
   }
