@@ -1,0 +1,15 @@
+image: gitpod/workspace-full-flutter
+
+tasks:
+  - name: Install Flutter & Run
+    init: flutter pub get
+    command: flutter run
+
+vscode:
+  extensions:
+    - Dart-Code.flutter
+    - Dart-Code.dart-code
+
+ports:
+  - port: 3000
+    onOpen: open-preview
