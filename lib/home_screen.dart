@@ -1,230 +1,289 @@
-// lib/home_screen.dart
-
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'edit_profile_screen.dart';
+import 'camera_overlay_screen.dart';
 
-class TabbedHomeScreen extends StatefulWidget {
-  const TabbedHomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<TabbedHomeScreen> createState() => _TabbedHomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _TabbedHomeScreenState extends State<TabbedHomeScreen> {
-  int _selectedIndex = 0;
-  final List<String> _tabs = ['DROP', 'MY PROGRESS'];
-  String _activeTab = 'DROP';
+class _HomeScreenState extends State<HomeScreen> {
+  int currentTabIndex = 0;
+  final List<String> tabTitles = ['Drop', 'My Progress', 'Saved'];
 
-  String _username = '';
-  Uint8List? _avatarBytes;
+  void showSeekoPopup(String type) {
+    String title = '';
+    switch (type) {
+      case 'Daily':
+        title = 'SEEKO даёт тебе задание';
+        break;
+      case 'Question':
+        title = 'SEEKO спрашивает тебя';
+        break;
+      case 'Challenge':
+        title = 'SEEKO бросает тебе вызов';
+        break;
+      case 'Goal':
+        title = 'SEEKO напоминает твою цель';
+        break;
+    }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadProfile();
-  }
-
-  Future<void> _loadProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    final name = prefs.getString('username');
-    final avatarBase64 = prefs.getString('avatar_base64');
-
-    setState(() {
-      _username = name ?? '';
-      if (avatarBase64 != null) {
-        _avatarBytes = base64Decode(avatarBase64);
-      }
-    });
-  }
-
-  Future<void> _goToEditProfile() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.black.withOpacity(0.85),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'S',
+              style: TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 2,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CameraOverlayScreen(taskText: title),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                  child: const Text("Принять"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    print('❌ Пропущено: $type');
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                  child: const Text("Пропустить"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    print('💾 Сохранено: $type');
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  child: const Text("Сохранить"),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
     );
-    _loadProfile(); // Refresh data after returning
   }
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  void _setActiveTab(String tab) {
-    setState(() {
-      _activeTab = tab;
-    });
-  }
-
-  Widget _buildMainContent() {
-    if (_activeTab == 'DROP') {
-      return Column(
+  Widget buildTabContent(int index) {
+    if (index == 0) {
+      return Wrap(
+        spacing: 20,
+        runSpacing: 20,
         children: [
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildFeatureButton('Daily'),
-              const SizedBox(width: 16),
-              _buildFeatureButton('Question'),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildFeatureButton('Challenge'),
-              const SizedBox(width: 16),
-              _buildFeatureButton('Goal'),
-            ],
-          ),
-          const SizedBox(height: 30),
-          _buildAICenterButton()
+          FeatureButton(label: 'Daily', onTap: () => showSeekoPopup('Daily')),
+          FeatureButton(label: 'Question', onTap: () => showSeekoPopup('Question')),
+          FeatureButton(label: 'Challenge', onTap: () => showSeekoPopup('Challenge')),
+          FeatureButton(label: 'Goal', onTap: () => showSeekoPopup('Goal')),
         ],
+      );
+    } else if (index == 1) {
+      return const Center(
+        child: Text("Выполненные задания появятся здесь", style: TextStyle(color: Colors.white)),
       );
     } else {
       return const Center(
-        child: Text(
-          'No stories yet',
-          style: TextStyle(color: Colors.white70, fontSize: 16),
-        ),
+        child: Text("Сохранённые задания появятся здесь", style: TextStyle(color: Colors.white)),
       );
     }
-  }
-
-  Widget _buildFeatureButton(String title) {
-    return ElevatedButton(
-      onPressed: () {},
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.grey[850],
-        foregroundColor: Colors.white,
-        minimumSize: const Size(130, 60),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      child: Text(title),
-    );
-  }
-
-  Widget _buildAICenterButton() {
-    return Container(
-      width: 80,
-      height: 80,
-      margin: const EdgeInsets.only(top: 10),
-      decoration: BoxDecoration(
-        color: Colors.grey[700],
-        shape: BoxShape.rectangle,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: const Center(
-        child: Text(
-          'S',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            letterSpacing: 2,
-          ),
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white.withOpacity(0.05),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        currentIndex: 0,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Camera'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.only(bottom: 70),
           child: Column(
             children: [
+              const SizedBox(height: 12),
               const Text(
                 'SEEKO',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
                 ),
               ),
+              const SizedBox(height: 12),
+              const CircleAvatar(radius: 38, backgroundColor: Colors.grey),
+              const SizedBox(height: 8),
+              const Text('Username', style: TextStyle(color: Colors.white, fontSize: 17)),
+              const SizedBox(height: 4),
+              const Text('Edit Profile', style: TextStyle(color: Colors.blueAccent, fontSize: 14)),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: Colors.white24,
-                    backgroundImage: _avatarBytes != null
-                        ? MemoryImage(_avatarBytes!)
-                        : null,
-                    child: _avatarBytes == null
-                        ? const Icon(Icons.person, color: Colors.white)
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      _username.isNotEmpty ? _username : 'Username',
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _goToEditProfile,
-                    child: const Text('Edit Profile'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+
+              // Tabs
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: _tabs.map((tab) {
-                  final isActive = tab == _activeTab;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                    child: GestureDetector(
-                      onTap: () => _setActiveTab(tab),
+                children: List.generate(tabTitles.length, (index) {
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        currentTabIndex = index;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
-                        tab,
+                        tabTitles[index],
                         style: TextStyle(
+                          color: currentTabIndex == index ? Colors.white : Colors.grey,
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isActive ? Colors.white : Colors.grey,
-                          decoration:
-                              isActive ? TextDecoration.underline : null,
+                          fontWeight: currentTabIndex == index
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                     ),
                   );
-                }).toList(),
+                }),
               ),
               const SizedBox(height: 20),
-              Expanded(child: _buildMainContent()),
+
+              // Tab content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: buildTabContent(currentTabIndex),
+                ),
+              ),
+
+              // AI Button
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  child: GestureDetector(
+                    onTap: () {
+                      print('AI button tapped');
+                    },
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF8f94fb), Color(0xFF4e54c8)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blueAccent.withOpacity(0.4),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'S',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
             ],
           ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.grey[900],
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                onPressed: () => _onTabTapped(0),
-                icon: const Icon(Icons.home, color: Colors.white),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.camera_alt, color: Colors.white),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.menu, color: Colors.white),
-              ),
-            ],
+    );
+  }
+}
+
+class FeatureButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const FeatureButton({super.key, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 150,
+        height: 90,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF2c2c54), Color(0xFF474787)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.withOpacity(0.25),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ),

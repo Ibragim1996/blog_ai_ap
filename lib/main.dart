@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import 'login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +14,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Seekon',
       theme: ThemeData.dark(),
-      home: const LoginScreen(),
+      home: HomeScreen(), // <- вот это главное
     );
   }
 }
