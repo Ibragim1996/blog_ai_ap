@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'home_screen.dart';
 import 'auth_screen.dart';
 import 'privacy_policy_screen.dart';
@@ -6,9 +7,10 @@ import 'about_screen.dart';
 import 'account_screen.dart';
 import 'premium_screen.dart';
 import 'delete_account_screen.dart';
-import 'edit_account_info_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(); // 👈 загружаем .env
   runApp(const MyApp());
 }
 

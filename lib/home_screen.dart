@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'camera_overlay_screen.dart';
 import 'edit_profile_screen.dart';
-import 'about_screen.dart';
-import 'premium_screen.dart';
-import 'delete_account_screen.dart';
+import 'package:my_app/services/openai_service.dart';
 import 'account_screen.dart';
 
 class HomeScreen extends StatefulWidget {

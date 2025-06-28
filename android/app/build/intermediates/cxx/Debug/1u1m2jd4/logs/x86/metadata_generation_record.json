@@ -1,0 +1,44 @@
+[
+  {
+    "level_": 0,
+    "message_": "Start JSON generation. Platform version: 21 min SDK version: x86",
+    "file_": "/home/ibragimav1996/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt",
+    "tag_": "debug|x86",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {},
+      "fieldsDescending": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 1705884310
+  },
+  {
+    "level_": 0,
+    "message_": "JSON \u0027/home/ibragimav1996/my_app/android/app/.cxx/Debug/1u1m2jd4/x86/android_gradle_build.json\u0027 was up-to-date",
+    "file_": "/home/ibragimav1996/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt",
+    "tag_": "debug|x86",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {},
+      "fieldsDescending": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 1458062977
+  },
+  {
+    "level_": 0,
+    "message_": "JSON generation completed without problems",
+    "file_": "/home/ibragimav1996/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt",
+    "tag_": "debug|x86",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {},
+      "fieldsDescending": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 1497773475
+  }
+]
