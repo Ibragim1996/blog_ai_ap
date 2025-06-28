@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "556300271135",
+    "project_id": "ibra-project-82064",
+    "storage_bucket": "ibra-project-82064.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556300271135:android:0779cf9b7307651b36df2a",
+        "android_client_info": {
+          "package_name": "com.seeko.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCG8AFCYkljV3H_YfAlRQfEwx107d1yWfU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
